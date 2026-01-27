@@ -30,14 +30,26 @@
           <img :src="artwork.thumbnail" :alt="artwork.prompt" />
         </div>
         <div class="artwork-info">
+          <p class="artwork-title" v-if="artwork.title">{{ artwork.title }}</p>
           <p class="artwork-prompt">{{ artwork.prompt }}</p>
+          <p v-if="artwork.description" class="artwork-description">{{ artwork.description }}</p>
           <p class="artwork-date">{{ formatDate(artwork.createdAt) }}</p>
+          <div class="artwork-tags" v-if="artwork.tags && artwork.tags.length > 0">
+            <span v-for="tag in artwork.tags.slice(0, 3)" :key="tag" class="mini-tag">{{ tag }}</span>
+            <span v-if="artwork.tags.length > 3" class="mini-tag">+{{ artwork.tags.length - 3 }}</span>
+          </div>
         </div>
         <div class="artwork-actions">
           <button @click="viewArtwork(artwork)" class="action-btn" title="查看大图">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+          <button @click="editArtworkInfo(artwork)" class="action-btn" title="编辑信息">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
           </button>
           <button @click="downloadArtwork(artwork)" class="action-btn" title="下载">
@@ -69,7 +81,6 @@
     </div>
 
     <!-- 查看大图模态框 -->
-    <!-- 查看大图模态框 -->
     <div v-if="selectedArtwork" class="modal" @click="closeModal">
       <div class="modal-content" @click.stop>
         <button class="close-btn" @click="closeModal">
@@ -80,11 +91,25 @@
         </button>
         <img :src="selectedArtwork.fullImage" :alt="selectedArtwork.prompt" />
         <div class="modal-info">
+          <h3 v-if="selectedArtwork.title" class="modal-title">{{ selectedArtwork.title }}</h3>
           <p class="modal-prompt">{{ selectedArtwork.prompt }}</p>
-          <p class="modal-date">{{ formatDate(selectedArtwork.createdAt) }}</p>
+          <p class="modal-date">创作于：{{ formatDate(selectedArtwork.createdAt) }}</p>
+          <p v-if="selectedArtwork.completedAt" class="modal-date">完成于：{{ formatDate(selectedArtwork.completedAt) }}</p>
+          <p v-if="selectedArtwork.description" class="modal-description">{{ selectedArtwork.description }}</p>
+          <div v-if="selectedArtwork.tags && selectedArtwork.tags.length > 0" class="modal-tags">
+            <span v-for="tag in selectedArtwork.tags" :key="tag" class="modal-tag">{{ tag }}</span>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 作品信息编辑器 -->
+    <ArtworkInfoEditor
+      v-if="editingArtwork"
+      :is-visible="isEditorVisible"
+      :artwork="editingArtwork"
+      @close="closeEditor"
+    />
   </div>
 </template>
 
@@ -92,6 +117,7 @@
 import { ref, computed } from 'vue';
 import { useCanvasStore } from '../stores/canvasStore';
 import type { Artwork } from '../types';
+import ArtworkInfoEditor from './ArtworkInfoEditor.vue';
 
 const store = useCanvasStore();
 
@@ -99,6 +125,8 @@ const artworks = computed(() => store.savedArtworks);
 const maxArtworks = computed(() => store.maxArtworks);
 const storageUsage = computed(() => store.storageUsage);
 const selectedArtwork = ref<Artwork | null>(null);
+const editingArtwork = ref<Artwork | null>(null);
+const isEditorVisible = ref(false);
 
 // 定义 emit
 const emit = defineEmits<{
@@ -163,6 +191,16 @@ const confirmClearAll = () => {
     emit('close');
   }
 };
+
+const editArtworkInfo = (artwork: Artwork) => {
+  editingArtwork.value = artwork;
+  isEditorVisible.value = true;
+};
+
+const closeEditor = () => {
+  isEditorVisible.value = false;
+  editingArtwork.value = null;
+};
 </script>
 
 <style scoped>
@@ -174,14 +212,11 @@ const confirmClearAll = () => {
 }
 
 .gallery-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 24px;
 }
 
 .gallery-header h2 {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 1.5rem;
   color: #374151;
 }
@@ -252,11 +287,24 @@ const confirmClearAll = () => {
 
 .artwork-info {
   padding: 12px;
+  max-height: 140px;
+  overflow: hidden;
+}
+
+.artwork-title {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .artwork-prompt {
   margin: 0 0 4px 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: #374151;
   display: -webkit-box;
@@ -265,10 +313,38 @@ const confirmClearAll = () => {
   overflow: hidden;
 }
 
-.artwork-date {
-  margin: 0;
+.artwork-description {
+  margin: 0 0 4px 0;
   font-size: 0.8rem;
+  color: #6B7280;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.artwork-date {
+  margin: 0 0 8px 0;
+  font-size: 0.75rem;
   color: #9CA3AF;
+}
+
+.artwork-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.mini-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #EFF6FF;
+  color: #3B82F6;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
 .artwork-actions {
@@ -355,20 +431,51 @@ const confirmClearAll = () => {
   max-height: 90vh;
   background: white;
   border-radius: 16px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: slideUp 0.3s ease;
 }
 
 .modal-content img {
   max-width: 100%;
-  max-height: 80vh;
+  max-height: 60vh;
   display: block;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .modal-info {
   padding: 16px 20px;
   background: white;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.modal-info::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-info::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 3px;
+}
+
+.modal-info::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+.modal-info::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+.modal-title {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
 }
 
 .modal-prompt {
@@ -379,9 +486,34 @@ const confirmClearAll = () => {
 }
 
 .modal-date {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 0.9rem;
   color: #9CA3AF;
+}
+
+.modal-description {
+  margin: 12px 0;
+  font-size: 0.95rem;
+  color: #4B5563;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #EFF6FF;
+  color: #3B82F6;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .close-btn {
@@ -399,6 +531,14 @@ const confirmClearAll = () => {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  padding: 0;
+  z-index: 10;
+}
+
+.close-btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .close-btn:hover {

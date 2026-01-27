@@ -10,7 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-electron
 *.local
+release
+preload
 
 启动项目.bat
 部署说明.md

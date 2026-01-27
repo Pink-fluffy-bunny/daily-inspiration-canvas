@@ -2,13 +2,6 @@
   <div class="inspiration-card">
     <div class="card-header">
       <h2>✨ 今日灵感</h2>
-      <button @click="refresh" class="refresh-btn" title="换个灵感">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M23 4v6h-6"></path>
-          <path d="M1 20v-6h6"></path>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-      </button>
     </div>
     <div class="card-content">
       <p class="prompt-text">{{ prompt }}</p>
@@ -23,10 +16,6 @@ import { useCanvasStore } from '../stores/canvasStore';
 const store = useCanvasStore();
 
 const prompt = computed(() => store.currentPrompt);
-
-const refresh = () => {
-  store.refreshPrompt();
-};
 </script>
 
 <style scoped>
@@ -50,9 +39,6 @@ const refresh = () => {
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 12px;
   position: relative;
   z-index: 1;
@@ -63,31 +49,6 @@ const refresh = () => {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-}
-
-.refresh-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(180deg);
-}
-
-.refresh-btn svg {
-  width: 16px;
-  height: 16px;
 }
 
 .card-content {

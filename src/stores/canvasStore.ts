@@ -6,7 +6,8 @@ import {
   deleteArtwork, 
   clearAllArtworks, 
   loadArtworks,
-  getStorageUsage
+  getStorageUsage,
+  saveArtworks
 } from '../utils/storageUtils';
 
 export const useCanvasStore = defineStore('canvas', {
@@ -205,6 +206,20 @@ export const useCanvasStore = defineStore('canvas', {
       link.download = `artwork-${Date.now()}.png`;
       link.href = this.canvasRef.toDataURL('image/png');
       link.click();
+    },
+
+    /**
+     * 更新作品信息
+     */
+    updateArtworkInfo(id: string, updates: Partial<Artwork>) {
+      const artwork = this.savedArtworks.find(art => art.id === id);
+      if (artwork) {
+        Object.assign(artwork, updates);
+        // 保存更新后的作品列表
+        saveArtworks(this.savedArtworks);
+        // 重新加载以更新状态
+        this.loadArtworks();
+      }
     }
   }
 });

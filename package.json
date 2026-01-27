@@ -3,10 +3,66 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "每日灵感画布 - 一个创意绘图应用",
+  "author": "your-name",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build && electron-builder",
+    "build:win": "vue-tsc -b && vite build && electron-builder --win",
+    "build:mac": "vue-tsc -b && vite build && electron-builder --mac",
+    "build:linux": "vue-tsc -b && vite build && electron-builder --linux",
     "preview": "vite preview"
+  },
+  "build": {
+    "appId": "com.dailyinspiration.canvas",
+    "productName": "每日灵感画布",
+    "directories": {
+      "output": "release/${version}"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "forceCodeSigning": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
   },
   "dependencies": {
     "js-yaml": "^4.1.1",
@@ -19,8 +75,14 @@
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
+    "cross-env": "^10.1.0",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0",
+    "sass-embedded": "^1.97.3",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
     "vue-tsc": "^3.1.4"
   }
 }

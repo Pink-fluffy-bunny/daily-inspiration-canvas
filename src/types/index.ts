@@ -22,6 +22,10 @@ export interface Artwork {
   fullImage: string;
   createdAt: number;
   size: number;
+  title?: string; // 作品名称
+  description?: string; // 作品说明
+  completedAt?: number; // 完成日期
+  tags?: string[]; // 标签
 }
 
 // 画布状态接口

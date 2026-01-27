@@ -1,4 +1,5 @@
 <template>
+  <Agentation/>
   <div class="app">
     <div class="app-container">
       <!-- 侧边栏 -->

@@ -203,6 +203,13 @@ const closeGallery = () => {
   justify-content: center;
   transition: all 0.2s ease;
   z-index: 10;
+  padding: 0;
+}
+
+.modal-close-btn svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .modal-close-btn:hover {
