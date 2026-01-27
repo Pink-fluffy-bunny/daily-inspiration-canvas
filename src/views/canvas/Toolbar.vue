@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useCanvasStore } from '../stores/canvasStore';
+import { useCanvasStore } from '../../stores/canvasStore';
 import ColorPicker from './ColorPicker.vue';
 
 const store = useCanvasStore();
@@ -146,8 +146,8 @@ const confirmClear = () => {
   }
 };
 
-const save = () => {
-  const success = store.saveArtwork();
+const save = async () => {
+  const success = await store.saveArtwork();
   if (success) {
     alert('作品已保存到画廊！');
   } else {
@@ -159,6 +159,7 @@ const download = () => {
   store.downloadImage();
 };
 </script>
+
 
 <style scoped>
 .toolbar {

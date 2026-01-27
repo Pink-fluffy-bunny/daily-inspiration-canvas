@@ -23,42 +23,27 @@
         <span v-if="artworkCount > 0" class="badge">{{ artworkCount }}</span>
       </button>
     </div>
-
-    <!-- 画廊弹窗 -->
-    <div v-if="showGallery" class="gallery-modal" @click="closeGallery">
-      <div class="gallery-modal-content" @click.stop>
-        <button class="modal-close-btn" @click="closeGallery">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-        <Gallery @close="closeGallery" />
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import InspirationCard from './InspirationCard.vue';
 import Toolbar from './Toolbar.vue';
-import Gallery from './Gallery.vue';
-import { useCanvasStore } from '../stores/canvasStore';
+import { useCanvasStore } from '../../stores/canvasStore';
 
+const router = useRouter();
 const store = useCanvasStore();
-const showGallery = ref(false);
 
 const artworkCount = computed(() => store.savedArtworks.length);
 
 const openGallery = () => {
-  showGallery.value = true;
-};
-
-const closeGallery = () => {
-  showGallery.value = false;
+  router.push('/');
 };
 </script>
+
+
 
 <style scoped>
 .sidebar {
@@ -160,83 +145,6 @@ const closeGallery = () => {
   text-align: center;
 }
 
-/* Gallery Modal */
-.gallery-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  animation: fadeIn 0.3s ease;
-}
-
-.gallery-modal-content {
-  position: relative;
-  width: 90vw;
-  max-width: 1200px;
-  max-height: 90vh;
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  animation: slideUp 0.3s ease;
-}
-
-.modal-close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 40px;
-  height: 40px;
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  z-index: 10;
-  padding: 0;
-}
-
-.modal-close-btn svg {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.modal-close-btn:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: rotate(90deg);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 1024px) {
   .sidebar {
     width: 280px;
@@ -244,3 +152,4 @@ const closeGallery = () => {
   }
 }
 </style>
+

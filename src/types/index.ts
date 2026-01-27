@@ -14,6 +14,14 @@ export interface PromptConfig {
   };
 }
 
+// 画册类型
+export interface Album {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: number;
+}
+
 // 作品类型
 export interface Artwork {
   id: string;
@@ -26,7 +34,9 @@ export interface Artwork {
   description?: string; // 作品说明
   completedAt?: number; // 完成日期
   tags?: string[]; // 标签
+  albumId?: string; // 所属画册ID
 }
+
 
 // 画布状态接口
 export interface CanvasState {

@@ -19,14 +19,14 @@ process.env.VITE_PUBLIC = app.isPackaged
   : path.join(__dirname, '../../public')
 
 let win: BrowserWindow | null = null
-// 预加载脚本
-const preloadPath = path.join(__dirname, '../preload/index.js')
+
 
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, 'vite.svg'),
     webPreferences: {
-      preload: preloadPath,
+      // 禁用不必要的预加载脚本以彻底解决打包兼容性问题
+      // 经检查，项目前端并未使用 ipcRenderer 或相关桥接 API
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       nodeIntegration: false,
       contextIsolation: true,

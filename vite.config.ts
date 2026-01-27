@@ -23,23 +23,10 @@ export default defineConfig({
             }
           }
         }
-      },
-      {
-        // Preload entry file of the Electron App.
-        entry: 'preload/index.ts',
-        onstart(options) {
-          options.reload()
-        },
-        vite: {
-          build: {
-            outDir: 'dist-electron',
-            rollupOptions: {
-              external: ['electron']
-            }
-          }
-        }
       }
     ]),
+
+
     renderer()
   ],
   assetsInclude: ['**/*.yaml'],

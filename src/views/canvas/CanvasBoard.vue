@@ -15,8 +15,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useCanvasStore } from '../stores/canvasStore';
-import { getCanvasCoordinates, getTouchCoordinates, drawLine, eraseArea, setCanvasBackground } from '../utils/canvasUtils';
+import { useCanvasStore } from '../../stores/canvasStore';
+import { getCanvasCoordinates, getTouchCoordinates, drawLine, eraseArea, setCanvasBackground } from '../../utils/canvasUtils';
 
 const store = useCanvasStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null);

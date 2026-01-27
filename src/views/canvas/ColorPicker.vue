@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useCanvasStore } from '../stores/canvasStore';
+import { useCanvasStore } from '../../stores/canvasStore';
 
 const store = useCanvasStore();
 

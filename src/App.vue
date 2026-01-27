@@ -1,21 +1,10 @@
 <template>
   <Agentation/>
-  <div class="app">
-    <div class="app-container">
-      <!-- 侧边栏 -->
-      <Sidebar />
-      
-      <!-- 主画板区域 -->
-      <div class="canvas-area">
-        <CanvasBoard />
-      </div>
-    </div>
-  </div>
+  <router-view />
 </template>
 
 <script setup lang="ts">
-import Sidebar from './components/Sidebar.vue';
-import CanvasBoard from './components/CanvasBoard.vue';
+import {Agentation} from './agentation';
 </script>
 
 <style>
@@ -44,27 +33,5 @@ body {
   width: 100vw;
   overflow: hidden;
 }
-
-.app {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-container {
-  display: flex;
-  height: 100%;
-  overflow: hidden;
-}
-
-.canvas-area {
-  flex: 1;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow: hidden;
-}
 </style>
+

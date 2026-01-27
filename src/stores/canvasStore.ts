@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { ToolType, Artwork } from '../types';
+import type { ToolType, Artwork, Album } from '../types';
 import { getDailyPrompt, getRandomPrompt } from '../utils/promptLoader';
 import { 
   addArtwork, 
@@ -7,7 +7,13 @@ import {
   clearAllArtworks, 
   loadArtworks,
   getStorageUsage,
-  saveArtworks
+  saveArtworks,
+  loadAlbums,
+  saveAlbum,
+  deleteAlbum,
+  migrateFromLocalStorage,
+  generateThumbnail,
+  calculateImageSize
 } from '../utils/storageUtils';
 
 export const useCanvasStore = defineStore('canvas', {
@@ -20,30 +26,40 @@ export const useCanvasStore = defineStore('canvas', {
     history: [] as ImageData[],
     historyIndex: -1,
     savedArtworks: [] as Artwork[],
-    maxArtworks: 100,
-    canvasRef: null as HTMLCanvasElement | null
+    albums: [] as Album[],
+    maxArtworks: 1000,
+    canvasRef: null as HTMLCanvasElement | null,
+    isInitialized: false
   }),
 
   getters: {
     canUndo: (state) => state.historyIndex > 0,
-    canRedo: (state) => state.historyIndex < state.history.length - 1,
-    storageUsage: () => getStorageUsage()
+    canRedo: (state) => state.historyIndex < state.history.length - 1
   },
 
   actions: {
     /**
-     * 初始化Canvas
+     * 初始化Canvas和存储
      */
-    initCanvas(canvas: HTMLCanvasElement) {
+    async initCanvas(canvas: HTMLCanvasElement) {
       this.canvasRef = canvas;
-      this.loadArtworks();
+      if (!this.isInitialized) {
+        await migrateFromLocalStorage();
+        await this.loadAllData();
+        this.isInitialized = true;
+      }
     },
 
     /**
-     * 加载保存的作品
+     * 加载所有数据
      */
-    loadArtworks() {
-      this.savedArtworks = loadArtworks();
+    async loadAllData() {
+      const [artworks, albums] = await Promise.all([
+        loadArtworks(),
+        loadAlbums()
+      ]);
+      this.savedArtworks = artworks;
+      this.albums = albums;
     },
 
     /**
@@ -51,11 +67,11 @@ export const useCanvasStore = defineStore('canvas', {
      */
     saveToHistory() {
       if (!this.canvasRef) return;
+      const ctx = this.canvasRef.getContext('2d');
+      if (!ctx) return;
 
-      const imageData = this.canvasRef.getContext('2d')?.getImageData(0, 0, this.canvasRef.width, this.canvasRef.height);
-      if (!imageData) return;
-
-      // 如果当前不在历史记录末尾，删除后面的记录
+      const imageData = ctx.getImageData(0, 0, this.canvasRef.width, this.canvasRef.height);
+      
       if (this.historyIndex < this.history.length - 1) {
         this.history = this.history.slice(0, this.historyIndex + 1);
       }
@@ -63,19 +79,14 @@ export const useCanvasStore = defineStore('canvas', {
       this.history.push(imageData);
       this.historyIndex++;
 
-      // 限制历史记录数量（最多50步）
       if (this.history.length > 50) {
         this.history.shift();
         this.historyIndex--;
       }
     },
 
-    /**
-     * 撤销
-     */
     undo() {
       if (!this.canUndo || !this.canvasRef) return;
-
       this.historyIndex--;
       const imageData = this.history[this.historyIndex];
       if (imageData) {
@@ -83,12 +94,8 @@ export const useCanvasStore = defineStore('canvas', {
       }
     },
 
-    /**
-     * 重做
-     */
     redo() {
       if (!this.canRedo || !this.canvasRef) return;
-
       this.historyIndex++;
       const imageData = this.history[this.historyIndex];
       if (imageData) {
@@ -96,12 +103,8 @@ export const useCanvasStore = defineStore('canvas', {
       }
     },
 
-    /**
-     * 清空画布
-     */
     clearCanvas() {
       if (!this.canvasRef) return;
-
       const ctx = this.canvasRef.getContext('2d');
       if (ctx) {
         ctx.fillStyle = '#FFFFFF';
@@ -110,23 +113,16 @@ export const useCanvasStore = defineStore('canvas', {
       }
     },
 
-    /**
-     * 刷新提示词
-     */
     refreshPrompt() {
       this.currentPrompt = getRandomPrompt();
     },
 
-    /**
-     * 保存当前作品
-     */
-    saveArtwork() {
+    async saveArtwork(albumId?: string) {
       if (!this.canvasRef) return false;
-
       try {
         const fullImage = this.canvasRef.toDataURL('image/jpeg', 0.7);
-        const thumbnail = this.generateThumbnail();
-        const size = this.calculateSize(fullImage);
+        const thumbnail = generateThumbnail(this.canvasRef);
+        const size = calculateImageSize(fullImage);
 
         const artwork: Artwork = {
           id: Date.now().toString(),
@@ -134,12 +130,13 @@ export const useCanvasStore = defineStore('canvas', {
           thumbnail,
           fullImage,
           createdAt: Date.now(),
-          size
+          size,
+          albumId
         };
 
-        const success = addArtwork(artwork);
+        const success = await addArtwork(artwork);
         if (success) {
-          this.loadArtworks();
+          this.savedArtworks = await loadArtworks();
         }
         return success;
       } catch (error) {
@@ -148,78 +145,105 @@ export const useCanvasStore = defineStore('canvas', {
       }
     },
 
-    /**
-     * 删除作品
-     */
-    removeArtwork(id: string) {
-      deleteArtwork(id);
-      this.loadArtworks();
+    async removeArtwork(id: string) {
+      await deleteArtwork(id);
+      this.savedArtworks = await loadArtworks();
     },
 
-    /**
-     * 清空所有作品
-     */
-    removeAllArtworks() {
-      clearAllArtworks();
-      this.loadArtworks();
+    async removeAllArtworks() {
+      await clearAllArtworks();
+      this.savedArtworks = await loadArtworks();
     },
 
-    /**
-     * 生成缩略图
-     */
-    generateThumbnail(): string {
-      if (!this.canvasRef) return '';
-
-      const thumbnailCanvas = document.createElement('canvas');
-      const maxSize = 200;
-      const scale = Math.min(maxSize / this.canvasRef.width, maxSize / this.canvasRef.height);
-      
-      thumbnailCanvas.width = this.canvasRef.width * scale;
-      thumbnailCanvas.height = this.canvasRef.height * scale;
-      
-      const ctx = thumbnailCanvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(this.canvasRef, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
-        return thumbnailCanvas.toDataURL('image/jpeg', 0.8);
+    async addAlbum(name: string, description?: string) {
+      const album: Album = {
+        id: Date.now().toString(),
+        name,
+        description,
+        createdAt: Date.now()
+      };
+      const success = await saveAlbum(album);
+      if (success) {
+        this.albums = await loadAlbums();
       }
-      
-      return '';
+      return success;
     },
 
-    /**
-     * 计算图片大小
-     */
-    calculateSize(dataUrl: string): number {
-      const parts = dataUrl.split(',');
-      const base64 = parts[1];
-      if (!base64) return 0;
-      return Math.round((base64.length * 3) / 4);
+    async removeAlbum(id: string) {
+      await deleteAlbum(id);
+      this.albums = await loadAlbums();
     },
 
-    /**
-     * 下载图片
-     */
+    async updateAlbum(album: Album) {
+      await saveAlbum(album);
+      this.albums = await loadAlbums();
+    },
+
+    async importArtwork(file: File, albumId?: string) {
+      return new Promise<boolean>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target?.result as string;
+          if (!base64) return resolve(false);
+
+          const img = new Image();
+          img.onload = async () => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const ctx = tempCanvas.getContext('2d');
+            if (!ctx) return resolve(false);
+            ctx.drawImage(img, 0, 0);
+
+            const thumbnail = generateThumbnail(tempCanvas);
+            const artwork: Artwork = {
+              id: Date.now().toString(),
+              prompt: '外部导入: ' + file.name,
+              thumbnail,
+              fullImage: base64,
+              createdAt: Date.now(),
+              size: file.size,
+              albumId,
+              title: file.name
+            };
+
+            const success = await addArtwork(artwork);
+            if (success) {
+              this.savedArtworks = await loadArtworks();
+            }
+            resolve(success);
+          };
+          img.onerror = () => resolve(false);
+          img.src = base64;
+        };
+        reader.onerror = () => resolve(false);
+        reader.readAsDataURL(file);
+      });
+    },
+
     downloadImage() {
       if (!this.canvasRef) return;
-
       const link = document.createElement('a');
       link.download = `artwork-${Date.now()}.png`;
       link.href = this.canvasRef.toDataURL('image/png');
       link.click();
     },
 
-    /**
-     * 更新作品信息
-     */
-    updateArtworkInfo(id: string, updates: Partial<Artwork>) {
-      const artwork = this.savedArtworks.find(art => art.id === id);
-      if (artwork) {
-        Object.assign(artwork, updates);
-        // 保存更新后的作品列表
-        saveArtworks(this.savedArtworks);
-        // 重新加载以更新状态
-        this.loadArtworks();
+    async updateArtworkInfo(id: string, updates: Partial<Artwork>) {
+      const artworks = await loadArtworks();
+      const index = artworks.findIndex(art => art.id === id);
+      if (index !== -1) {
+        const target = artworks[index];
+        if (target) {
+          Object.assign(target, updates);
+          await saveArtworks(artworks);
+          this.savedArtworks = await loadArtworks();
+        }
       }
+    },
+
+    async getUsage() {
+      return await getStorageUsage();
     }
   }
 });

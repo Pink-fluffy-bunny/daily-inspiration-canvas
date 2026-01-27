@@ -33,8 +33,20 @@
           </div>
         </div>
 
+        <!-- 画册归类 -->
+        <div class="form-group">
+          <label for="album">所属画册</label>
+          <select id="album" v-model="formData.albumId">
+            <option value="">🏠 未分类 (全部作品)</option>
+            <option v-for="album in albums" :key="album.id" :value="album.id">
+              {{ album.name }}
+            </option>
+          </select>
+        </div>
+
         <!-- 完成日期 -->
         <div class="form-group">
+
           <label for="completedAt">完成日期</label>
           <input
             id="completedAt"
@@ -88,9 +100,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
-import { useCanvasStore } from '../stores/canvasStore';
-import type { Artwork } from '../types';
+import { ref, reactive, watch, computed } from 'vue';
+import { useCanvasStore } from '../../stores/canvasStore';
+import type { Artwork } from '../../types';
 
 interface Props {
   isVisible: boolean;
@@ -110,18 +122,24 @@ const formData = reactive({
   title: '' as string,
   description: '' as string,
   completedAtDate: '' as string,
-  tags: [] as string[]
+  tags: [] as string[],
+  albumId: '' as string
 });
 
+
 const newTag = ref('');
+const albums = computed(() => store.albums);
+
 
 // 监听作品数据变化，初始化表单
 watch(() => props.artwork, (newArtwork) => {
   formData.title = newArtwork.title || '';
   formData.description = newArtwork.description || '';
   formData.tags = newArtwork.tags ? [...newArtwork.tags] : [];
+  formData.albumId = newArtwork.albumId || '';
   
   // 将完成时间戳转换为日期字符串
+
   if (newArtwork.completedAt) {
     const date = new Date(newArtwork.completedAt);
     const dateString = date.toISOString().split('T')[0];
@@ -176,6 +194,9 @@ const save = () => {
     const date = new Date(formData.completedAtDate);
     updates.completedAt = date.getTime();
   }
+
+  updates.albumId = formData.albumId || '';
+
 
   // 更新作品信息
   store.updateArtworkInfo(props.artwork.id, updates);

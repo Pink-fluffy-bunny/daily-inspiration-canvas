@@ -1,7 +1,7 @@
 {
   "name": "daily-inspiration-canvas",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "每日灵感画布 - 一个创意绘图应用",
   "author": "your-name",
@@ -18,8 +18,9 @@
     "appId": "com.dailyinspiration.canvas",
     "productName": "每日灵感画布",
     "directories": {
-      "output": "release/${version}"
+      "output": "release"
     },
+
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -27,15 +28,13 @@
     ],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
+        "zip"
       ],
-      "forceCodeSigning": false
+      "forceCodeSigning": false,
+      "cscLink": null
     },
+
+
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -67,7 +66,8 @@
   "dependencies": {
     "js-yaml": "^4.1.1",
     "pinia": "^3.0.4",
-    "vue": "^3.5.24"
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@iconify/vue": "^5.0.0",
