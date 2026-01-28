@@ -281,10 +281,13 @@ const formatDate = (timestamp: number) => {
 .artwork-card {
   background: white;
   border-radius: 16px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #F3F4F6;
+  position: relative;
 }
 
 .artwork-card:hover {
@@ -298,6 +301,7 @@ const formatDate = (timestamp: number) => {
   cursor: pointer;
   background: #F9FAFB;
   overflow: hidden;
+  border-radius: 16px 16px 0 0;
 }
 
 .artwork-image img {
@@ -308,6 +312,7 @@ const formatDate = (timestamp: number) => {
 
 .artwork-info {
   padding: 16px;
+  flex: 1;
 }
 
 .artwork-title {
@@ -340,6 +345,7 @@ const formatDate = (timestamp: number) => {
 .artwork-tags {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .mini-tag {
@@ -416,15 +422,19 @@ const formatDate = (timestamp: number) => {
   max-height: 90vh;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-body {
   display: flex;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-body img {
   width: 65%;
+  max-height: 100%;
   object-fit: contain;
   background: #F9FAFB;
 }
