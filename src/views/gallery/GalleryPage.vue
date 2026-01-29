@@ -34,6 +34,9 @@
           <div class="artwork-info">
             <p class="artwork-title" v-if="artwork.title">{{ artwork.title }}</p>
             <p class="artwork-prompt">{{ artwork.prompt }}</p>
+            <p class="artwork-description" v-if="artwork.description">
+              {{ truncateText(artwork.description, 45) }}
+            </p>
             <p class="artwork-date">{{ formatDate(artwork.createdAt) }}</p>
             <div class="artwork-tags" v-if="artwork.tags && artwork.tags.length > 0">
               <span v-for="tag in artwork.tags.slice(0, 3)" :key="tag" class="mini-tag">{{ tag }}</span>
@@ -218,6 +221,12 @@ const formatDate = (timestamp: number) => {
     minute: '2-digit'
   });
 };
+
+const truncateText = (text: string, maxLength: number) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+};
 </script>
 
 <style scoped>
@@ -336,6 +345,19 @@ const formatDate = (timestamp: number) => {
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.4;
+}
+
+.artwork-description {
+  margin: 0 0 10px 0;
+  font-size: 0.8rem;
+  color: #6B7280;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
 }
 
 .artwork-date {
