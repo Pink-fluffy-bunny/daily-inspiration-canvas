@@ -196,6 +196,7 @@ watch(() => store.savedArtworks.length, updateUsage);
 <style scoped>
 .gallery-sidebar {
   width: 280px;
+  flex-shrink: 0;
   background: white;
   border-right: 1px solid #E5E7EB;
   display: flex;

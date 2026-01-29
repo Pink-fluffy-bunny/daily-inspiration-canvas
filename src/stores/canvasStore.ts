@@ -7,13 +7,13 @@ import {
   clearAllArtworks, 
   loadArtworks,
   getStorageUsage,
-  saveArtworks,
   loadAlbums,
   saveAlbum,
   deleteAlbum,
   migrateFromLocalStorage,
   generateThumbnail,
-  calculateImageSize
+  calculateImageSize,
+  updateArtwork
 } from '../utils/storageUtils';
 
 export const useCanvasStore = defineStore('canvas', {
@@ -235,9 +235,13 @@ export const useCanvasStore = defineStore('canvas', {
       if (index !== -1) {
         const target = artworks[index];
         if (target) {
+          // 应用更新
           Object.assign(target, updates);
-          await saveArtworks(artworks);
-          this.savedArtworks = await loadArtworks();
+          // 使用专门的更新方法，更高效且处理了克隆问题
+          const success = await updateArtwork(target);
+          if (success) {
+            this.savedArtworks = await loadArtworks();
+          }
         }
       }
     },

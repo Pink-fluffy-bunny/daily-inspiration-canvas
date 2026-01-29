@@ -224,7 +224,8 @@ const formatDate = (timestamp: number) => {
 .gallery-page {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   background: #F3F4F6;
   overflow: hidden;
 }
@@ -235,6 +236,7 @@ const formatDate = (timestamp: number) => {
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+  min-width: 0;
 }
 
 .gallery-header {

@@ -114,7 +114,9 @@ export const addArtwork = async (artwork: Artwork): Promise<boolean> => {
       if (oldest) store.delete(oldest.id);
     }
 
-    const request = store.put(artwork);
+    // 确保对象是可克隆的（处理 Vue Proxy 等问题）
+    const cleanArtwork = JSON.parse(JSON.stringify(artwork));
+    const request = store.put(cleanArtwork);
     request.onsuccess = () => resolve(true);
     request.onerror = () => {
       console.error('Failed to add artwork:', request.error);
@@ -133,12 +135,37 @@ export const saveArtworks = async (artworks: Artwork[]): Promise<boolean> => {
     const store = transaction.objectStore(ARTWORK_STORE);
 
     // IndexedDB 的批量更新通常是一个个 put
-    artworks.forEach(art => store.put(art));
+    artworks.forEach(art => {
+      const cleanArt = JSON.parse(JSON.stringify(art));
+      store.put(cleanArt);
+    });
 
     transaction.oncomplete = () => resolve(true);
     transaction.onerror = () => resolve(false);
   });
 };
+
+/**
+ * 更新单个作品信息
+ */
+export const updateArtwork = async (artwork: Artwork): Promise<boolean> => {
+  const database = await initDB();
+  return new Promise((resolve) => {
+    const transaction = database.transaction([ARTWORK_STORE], 'readwrite');
+    const store = transaction.objectStore(ARTWORK_STORE);
+
+    // 确保对象是可克隆的（处理 Vue Proxy 等问题）
+    const cleanArtwork = JSON.parse(JSON.stringify(artwork));
+    const request = store.put(cleanArtwork);
+
+    request.onsuccess = () => resolve(true);
+    request.onerror = () => {
+      console.error('Failed to update artwork:', request.error);
+      resolve(false);
+    };
+  });
+};
+
 
 /**
  * 删除作品
@@ -189,7 +216,9 @@ export const saveAlbum = async (album: Album): Promise<boolean> => {
   return new Promise((resolve) => {
     const transaction = database.transaction([ALBUM_STORE], 'readwrite');
     const store = transaction.objectStore(ALBUM_STORE);
-    const request = store.put(album);
+    // 确保对象是可克隆的
+    const cleanAlbum = JSON.parse(JSON.stringify(album));
+    const request = store.put(cleanAlbum);
 
     request.onsuccess = () => resolve(true);
     request.onerror = () => resolve(false);

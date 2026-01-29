@@ -186,7 +186,7 @@ const save = () => {
   const updates: Partial<Artwork> = {
     title: formData.title || undefined,
     description: formData.description || undefined,
-    tags: formData.tags.length > 0 ? formData.tags : undefined
+    tags: formData.tags.length > 0 ? [...formData.tags] : undefined
   };
 
   // 将日期字符串转换为时间戳
