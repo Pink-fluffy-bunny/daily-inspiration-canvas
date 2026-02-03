@@ -1,10 +1,8 @@
 <template>
-  <Agentation/>
   <router-view />
 </template>
 
 <script setup lang="ts">
-import {Agentation} from './agentation';
 </script>
 
 <style>

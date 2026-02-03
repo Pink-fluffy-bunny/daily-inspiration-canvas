@@ -104,6 +104,9 @@
               <span v-for="tag in selectedArtwork.tags" :key="tag" class="modal-tag">{{ tag }}</span>
             </div>
             <div class="modal-actions">
+              <button @click="enterMagicalLumina(selectedArtwork!)" class="modal-btn magical">
+                ✨ 进入魔法光影
+              </button>
               <button @click="downloadArtwork(selectedArtwork!)" class="modal-btn primary">
                 下载原图
               </button>
@@ -125,12 +128,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useCanvasStore } from '../../stores/canvasStore';
 import type { Artwork } from '../../types';
 import GallerySidebar from './GallerySidebar.vue';
 import ArtworkInfoEditor from '../../components/common/ArtworkInfoEditor.vue';
 
 const store = useCanvasStore();
+const router = useRouter();
 
 const filterCriteria = ref({ query: '', albumId: '' });
 const selectedArtwork = ref<Artwork | null>(null);
@@ -196,6 +201,10 @@ const editArtworkInfo = (artwork: Artwork) => {
 const closeEditor = () => {
   isEditorVisible.value = false;
   editingArtwork.value = null;
+};
+
+const enterMagicalLumina = (artwork: Artwork) => {
+  router.push({ name: 'Lumina', params: { id: artwork.id } });
 };
 
 const downloadArtwork = (artwork: Artwork) => {
@@ -501,6 +510,21 @@ const truncateText = (text: string, maxLength: number) => {
 .modal-btn.primary {
   background: #6366F1;
   color: white;
+}
+
+.modal-btn.magical {
+  background: linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%);
+  color: white;
+  margin-right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.modal-btn.magical:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(217, 70, 239, 0.4);
 }
 
 .close-btn {

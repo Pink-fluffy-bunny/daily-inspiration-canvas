@@ -12,6 +12,11 @@ const routes = [
     path: '/canvas',
     name: 'Canvas',
     component: CanvasPage
+  },
+  {
+    path: '/lumina/:id',
+    name: 'Lumina',
+    component: () => import('../views/lumina/LuminaStudio.vue')
   }
 ];
 
