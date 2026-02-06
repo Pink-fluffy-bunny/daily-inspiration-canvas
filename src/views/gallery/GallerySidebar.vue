@@ -57,21 +57,9 @@
 
     <div class="sidebar-section albums-section">
       <div class="section-title">
-        <h3>画册管理</h3>
-        <button @click="showAddAlbum = true" class="add-album-btn">+</button>
+        <h3>画册列表</h3>
       </div>
       
-      <!-- 新增画册输入框 -->
-      <div v-if="showAddAlbum" class="add-album-form">
-        <input v-model="newAlbumName" type="text" placeholder="画册名称" />
-        <textarea v-model="newAlbumDescription" placeholder="画册介绍 (可选)" rows="2"></textarea>
-        <div class="form-actions">
-          <button @click="createAlbum">确定</button>
-          <button @click="showAddAlbum = false" class="cancel">取消</button>
-        </div>
-      </div>
-
-
       <div class="album-list">
         <div 
           class="album-item" 
@@ -122,9 +110,6 @@ const store = useCanvasStore();
 
 const searchQuery = ref('');
 const fileInput = ref<HTMLInputElement | null>(null);
-const showAddAlbum = ref(false);
-const newAlbumName = ref('');
-const newAlbumDescription = ref('');
 const selectedAlbumId = ref('');
 
 const usage = ref({ count: 0, maxCount: 1000, usedPercentage: 0 });
@@ -160,16 +145,6 @@ const handleFileChange = async (event: Event) => {
     }
   }
 };
-
-const createAlbum = async () => {
-  if (newAlbumName.value.trim()) {
-    await store.addAlbum(newAlbumName.value.trim(), newAlbumDescription.value.trim());
-    newAlbumName.value = '';
-    newAlbumDescription.value = '';
-    showAddAlbum.value = false;
-  }
-};
-
 
 const deleteAlbum = async (id: string) => {
   if (confirm('确定要删除这个画册吗？（画册中的作品将变为未分类）')) {

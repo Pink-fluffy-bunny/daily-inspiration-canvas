@@ -20,6 +20,10 @@ export interface Album {
   name: string;
   description?: string;
   createdAt: number;
+  coverImageId?: string;  // 封面作品ID
+  coverScale?: number;    // 封面缩放倍率(默认1.0)
+  coverOffsetX?: number;  // 封面X轴偏移(像素)
+  coverOffsetY?: number;  // 封面Y轴偏移(像素)
 }
 
 // 作品类型

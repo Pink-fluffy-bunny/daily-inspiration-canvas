@@ -2,6 +2,13 @@
   <div class="inspiration-card">
     <div class="card-header">
       <h2>✨ 今日灵感</h2>
+      <button class="refresh-button" @click="handleRefresh" title="刷新灵感">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"></path>
+          <path d="M1 20v-6h6"></path>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
     </div>
     <div class="card-content">
       <p class="prompt-text">{{ prompt }}</p>
@@ -16,6 +23,10 @@ import { useCanvasStore } from '../../stores/canvasStore';
 const store = useCanvasStore();
 
 const prompt = computed(() => store.currentPrompt);
+
+const handleRefresh = () => {
+  store.refreshPrompt();
+};
 </script>
 
 <style scoped>
@@ -42,6 +53,9 @@ const prompt = computed(() => store.currentPrompt);
   margin-bottom: 12px;
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-header h2 {
@@ -49,6 +63,32 @@ const prompt = computed(() => store.currentPrompt);
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.refresh-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.refresh-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(180deg);
+}
+
+.refresh-button:active {
+  transform: rotate(180deg) scale(0.95);
+}
+
+.refresh-button svg {
+  transition: transform 0.5s ease;
 }
 
 .card-content {
@@ -78,5 +118,14 @@ const prompt = computed(() => store.currentPrompt);
 
 .prompt-text {
   animation: fadeIn 0.5s ease;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

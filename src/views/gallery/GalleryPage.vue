@@ -5,11 +5,37 @@
       @import-success="onImportSuccess"
     />
     
-    <main class="gallery-main">
+    <!-- 画册宫格视图 -->
+    <main v-if="viewMode === 'albums'" class="gallery-main albums-view">
+      <AlbumGridView 
+        @open-album="handleOpenAlbum"
+      />
+    </main>
+    
+    <!-- 作品列表视图 -->
+    <main v-else class="gallery-main">
       <header class="gallery-header">
         <div class="header-left">
-          <h2>{{ currentAlbumName }}</h2>
+          <button @click="backToAlbums" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span>返回画册</span>
+          </button>
+          <div>
+            <h2>{{ currentAlbumName }}</h2>
+            <p v-if="currentAlbumDescription" class="album-description">{{ currentAlbumDescription }}</p>
+          </div>
           <span class="count-badge">{{ filteredArtworks.length }}</span>
+        </div>
+        <div class="header-right">
+          <button v-if="currentAlbum" @click="editCurrentAlbum" class="edit-album-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            编辑画册
+          </button>
         </div>
       </header>
 
@@ -123,6 +149,14 @@
       :artwork="editingArtwork"
       @close="closeEditor"
     />
+
+    <!-- 画册编辑器 -->
+    <AlbumEditor
+      v-if="editingAlbum"
+      :is-visible="isAlbumEditorVisible"
+      :album="editingAlbum"
+      @close="closeAlbumEditor"
+    />
   </div>
 </template>
 
@@ -130,17 +164,22 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCanvasStore } from '../../stores/canvasStore';
-import type { Artwork } from '../../types';
+import type { Artwork, Album } from '../../types';
 import GallerySidebar from './GallerySidebar.vue';
 import ArtworkInfoEditor from '../../components/common/ArtworkInfoEditor.vue';
+import AlbumGridView from './AlbumGridView.vue';
+import AlbumEditor from './AlbumEditor.vue';
 
 const store = useCanvasStore();
 const router = useRouter();
 
+const viewMode = ref<'albums' | 'artworks'>('albums');
 const filterCriteria = ref({ query: '', albumId: '' });
 const selectedArtwork = ref<Artwork | null>(null);
 const editingArtwork = ref<Artwork | null>(null);
 const isEditorVisible = ref(false);
+const editingAlbum = ref<Album | null>(null);
+const isAlbumEditorVisible = ref(false);
 
 onMounted(async () => {
   // 确保数据已加载
@@ -149,10 +188,20 @@ onMounted(async () => {
   }
 });
 
+const currentAlbum = computed(() => {
+  if (!filterCriteria.value.albumId) return null;
+  return store.albums.find(a => a.id === filterCriteria.value.albumId) || null;
+});
+
 const currentAlbumName = computed(() => {
   if (!filterCriteria.value.albumId) return '全部作品';
-  const album = store.albums.find(a => a.id === filterCriteria.value.albumId);
+  const album = currentAlbum.value;
   return album ? album.name : '全部作品';
+});
+
+const currentAlbumDescription = computed(() => {
+  const album = currentAlbum.value;
+  return album?.description;
 });
 
 const filteredArtworks = computed(() => {
@@ -163,7 +212,12 @@ const filteredArtworks = computed(() => {
     list = list.filter(art => art.albumId === filterCriteria.value.albumId);
   }
   
-  // 按搜索词过虑 (标题、提示词、标签)
+  // 未分类视图：只显示没有画册的作品
+  if (filterCriteria.value.albumId === '' && viewMode.value === 'artworks') {
+    list = list.filter(art => !art.albumId);
+  }
+  
+  // 按搜索词过滤 (标题、提示词、标签)
   if (filterCriteria.value.query) {
     const q = filterCriteria.value.query.toLowerCase();
     list = list.filter(art => 
@@ -179,10 +233,36 @@ const filteredArtworks = computed(() => {
 
 const handleFilter = (criteria: { query: string, albumId: string }) => {
   filterCriteria.value = criteria;
+  // 如果选择了画册，切换到作品视图
+  if (criteria.albumId) {
+    viewMode.value = 'artworks';
+  }
 };
 
 const onImportSuccess = () => {
   // 可选：显示成功提示
+};
+
+const handleOpenAlbum = (albumId: string) => {
+  filterCriteria.value = { query: '', albumId };
+  viewMode.value = 'artworks';
+};
+
+const backToAlbums = () => {
+  filterCriteria.value = { query: '', albumId: '' };
+  viewMode.value = 'albums';
+};
+
+const editCurrentAlbum = () => {
+  if (currentAlbum.value) {
+    editingAlbum.value = currentAlbum.value;
+    isAlbumEditorVisible.value = true;
+  }
+};
+
+const closeAlbumEditor = () => {
+  isAlbumEditorVisible.value = false;
+  editingAlbum.value = null;
 };
 
 const viewArtwork = (artwork: Artwork) => {
@@ -270,6 +350,67 @@ const truncateText = (text: string, maxLength: number) => {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #F3F4F6;
+  border: none;
+  border-radius: 8px;
+  color: #4B5563;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.back-btn:hover {
+  background: #E5E7EB;
+  color: #1F2937;
+}
+
+.header-right {
+  display: flex;
+  gap: 12px;
+}
+
+.edit-album-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  color: #4B5563;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.edit-album-btn svg {
+  flex-shrink: 0;
+}
+
+.edit-album-btn:hover {
+  background: #F3F4F6;
+  border-color: #6366F1;
+  color: #6366F1;
+}
+
+.album-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6B7280;
+  max-width: 400px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-left h2 {

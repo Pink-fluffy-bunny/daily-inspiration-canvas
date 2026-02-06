@@ -649,20 +649,20 @@ const buildPath = (path: Path2D, x: number, y: number, w: number, h: number, sha
             const cy = ry + rh/2;
             const earH = r * 0.5;
             
-            // Just add shapes to path. Winding rule usually handles union for simple overlap if non-zero is used.
-            // Face
-            path.moveTo(cx + r, cy);
+            // Left Ear Triangle
+            path.moveTo(cx - r*0.8, cy - r*0.6);
+            path.lineTo(cx - r*1.1, cy - r - earH * 0.8);
+            path.lineTo(cx - r*0.2, cy - r*0.9);
+            path.closePath();
+            
+            // Right Ear Triangle (reverse order to match left)
+            path.moveTo(cx + r*0.8, cy - r*0.6);
+            path.lineTo(cx + r*0.2, cy - r*0.9);
+            path.lineTo(cx + r*1.1, cy - r - earH * 0.8);
+            path.closePath();
+            
+            // Face Circle
             path.arc(cx, cy, r, 0, Math.PI * 2);
-            // Left Ear
-            path.moveTo(cx - r*0.5, cy - r*0.6);
-            path.lineTo(cx - r*0.9, cy - r - earH * 0.5);
-            path.lineTo(cx - r*0.1, cy - r*0.8);
-            path.closePath();
-            // Right Ear
-            path.moveTo(cx + r*0.5, cy - r*0.6);
-            path.lineTo(cx + r*0.9, cy - r - earH * 0.5);
-            path.lineTo(cx + r*0.1, cy - r*0.8);
-            path.closePath();
             break;
     }
 };
